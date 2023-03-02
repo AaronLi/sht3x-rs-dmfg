@@ -24,7 +24,7 @@ where
     I2C: Read<Error = E> + Write<Error = E> + WriteRead<Error = E>,
 {
     /// Creates a new driver.
-    pub const fn new(i2c: I2c, address: Address) -> Self {
+    pub const fn new(i2c: I2C, address: Address) -> Self {
         Self { i2c, address }
     }
 
