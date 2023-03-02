@@ -6,6 +6,7 @@ use core::time::Duration;
 use bitflags::bitflags;
 use embedded_hal::blocking::delay::DelayMs;
 use embedded_hal::blocking::i2c::{Read, Write, WriteRead};
+use esp_idf_sys::sleep;
 
 // 2.2 Timing Specification for the Sensor System
 // Table 4
