@@ -1,13 +1,10 @@
 //! Driver for Sensirion SHT3x-DIS digital temperature/humidity sensors
 
-#![no_std]
-
 use core::time::Duration;
+use std::thread::sleep;
 use bitflags::bitflags;
 use embedded_hal::blocking::delay::DelayMs;
 use embedded_hal::blocking::i2c::{Read, Write, WriteRead};
-use esp_idf_sys::sleep;
-
 // 2.2 Timing Specification for the Sensor System
 // Table 4
 // TODO: Support longer times needed with lower voltage (Table 5).
