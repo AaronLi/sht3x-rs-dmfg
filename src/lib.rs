@@ -24,7 +24,7 @@ where
     I2C: Read<Error = E> + Write<Error = E> + WriteRead<Error = E>,
 {
     /// Creates a new driver.
-    pub const fn new(i2c: I2C, address: Address) -> Self {
+    pub const fn new(i2c: I2c, address: Address) -> Self {
         Self { i2c, address }
     }
 
@@ -52,7 +52,7 @@ where
         let humidity = check_crc([buf[3], buf[4]], buf[5])
             .map(convert_humidity)?;
 
-        Ok(Measurement{ temperature, humidity })
+        Ok(Measurement{ temperature: temperature as f32 / 100.0, humidity: humidity as f32 / 100.0 })
     }
 
     /// Soft reset the sensor.
@@ -254,8 +254,8 @@ impl Command {
 
 #[derive(Debug)]
 pub struct Measurement {
-    pub temperature: i32,
-    pub humidity: u16,
+    pub temperature: f32,
+    pub humidity: f32,
 }
 
 bitflags! {
