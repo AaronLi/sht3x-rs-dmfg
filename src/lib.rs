@@ -14,11 +14,11 @@ const SOFT_RESET_TIME_MS: u8 = 1;
 const COMMAND_WAIT_TIME_MS: u8 = 1;
 
 #[derive(Debug, Clone)]
-pub struct Sht3x<I2C> {
+pub struct Sht3x {
     address: Address,
 }
 
-impl<I2C, E> Sht3x<I2C>
+impl<I2C, E> Sht3x
 where
     I2C: Read<Error = E> + Write<Error = E> + WriteRead<Error = E>,
 {
