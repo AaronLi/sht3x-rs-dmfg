@@ -18,17 +18,14 @@ pub struct Sht3x {
     address: Address,
 }
 
-impl<I2C, E> Sht3x
-where
-    I2C: Read<Error = E> + Write<Error = E> + WriteRead<Error = E>,
-{
+impl Sht3x{
     /// Creates a new driver.
     pub const fn new(address: Address) -> Self {
         Self { address }
     }
 
     /// Send an I2C command.
-    fn command(&self, i2c: &mut I2C, command: Command, wait_time: Option<u8>) -> Result<(), Error<E>> {
+    fn command<I2C: Read<Error = E> + Write<Error = E> + WriteRead<Error = E>, E>(&self, i2c: &mut I2C, command: Command, wait_time: Option<u8>) -> Result<(), Error<E>> {
         let cmd_bytes = command.value().to_be_bytes();
         i2c
             .write(self.address as u8, &cmd_bytes)
@@ -40,7 +37,7 @@ where
     }
 
     /// Take a temperature and humidity measurement.
-    pub fn measure(&self, i2c: &mut I2C, cs: ClockStretch, rpt: Repeatability) -> Result<Measurement, Error<E>> {
+    pub fn measure<I2C: Read<Error = E> + Write<Error = E> + WriteRead<Error = E>, E>(&self, i2c: &mut I2C, cs: ClockStretch, rpt: Repeatability) -> Result<Measurement, Error<E>> {
         self.command(i2c,Command::SingleShot(cs, rpt), Some(rpt.max_duration()))?;
         let mut buf = [0; 6];
         i2c.read(self.address as u8, &mut buf)
@@ -55,12 +52,12 @@ where
     }
 
     /// Soft reset the sensor.
-    pub fn reset(&self, i2c: &mut I2C) -> Result<(), Error<E>> {
+    pub fn reset<I2C: Read<Error = E> + Write<Error = E> + WriteRead<Error = E>, E>(&self, i2c: &mut I2C) -> Result<(), Error<E>> {
         self.command(i2c,Command::SoftReset, Some(SOFT_RESET_TIME_MS))
     }
 
     /// Read the status register.
-    pub fn status(&self, i2c: &mut I2C) -> Result<Status, Error<E>> {
+    pub fn status<I2C: Read<Error = E> + Write<Error = E> + WriteRead<Error = E>, E>(&self, i2c: &mut I2C) -> Result<Status, Error<E>> {
         self.command(i2c,Command::Status, None)?;
         let mut buf = [0; 3];
         i2c
@@ -72,7 +69,7 @@ where
     }
 
     /// Clear the status register.
-    pub fn clear_status<D: DelayMs<u8>>(&self, i2c: &mut I2C) -> Result<(), Error<E>> {
+    pub fn clear_status<I2C: Read<Error = E> + Write<Error = E> + WriteRead<Error = E>, E, D: DelayMs<u8>>(&self, i2c: &mut I2C) -> Result<(), Error<E>> {
         self.command(i2c, Command::ClearStatus, None)
     }
 }
