@@ -15,7 +15,6 @@ const COMMAND_WAIT_TIME_MS: u8 = 1;
 
 #[derive(Debug, Clone)]
 pub struct Sht3x<I2C> {
-    i2c: I2C,
     address: Address,
 }
 
@@ -24,14 +23,14 @@ where
     I2C: Read<Error = E> + Write<Error = E> + WriteRead<Error = E>,
 {
     /// Creates a new driver.
-    pub const fn new(i2c: I2C, address: Address) -> Self {
-        Self { i2c, address }
+    pub const fn new(address: Address) -> Self {
+        Self { address }
     }
 
     /// Send an I2C command.
-    fn command(&mut self, command: Command, wait_time: Option<u8>) -> Result<(), Error<E>> {
+    fn command(&self, i2c: &mut I2C, command: Command, wait_time: Option<u8>) -> Result<(), Error<E>> {
         let cmd_bytes = command.value().to_be_bytes();
-        self.i2c
+        i2c
             .write(self.address as u8, &cmd_bytes)
             .map_err(Error::I2c)?;
 
@@ -41,10 +40,10 @@ where
     }
 
     /// Take a temperature and humidity measurement.
-    pub fn measure(&mut self, cs: ClockStretch, rpt: Repeatability) -> Result<Measurement, Error<E>> {
-        self.command(Command::SingleShot(cs, rpt), Some(rpt.max_duration()))?;
+    pub fn measure(&self, i2c: &mut I2C, cs: ClockStretch, rpt: Repeatability) -> Result<Measurement, Error<E>> {
+        self.command(i2c,Command::SingleShot(cs, rpt), Some(rpt.max_duration()))?;
         let mut buf = [0; 6];
-        self.i2c.read(self.address as u8, &mut buf)
+        i2c.read(self.address as u8, &mut buf)
                 .map_err(Error::I2c)?;
 
         let temperature = check_crc([buf[0], buf[1]], buf[2])
@@ -56,15 +55,15 @@ where
     }
 
     /// Soft reset the sensor.
-    pub fn reset(&mut self) -> Result<(), Error<E>> {
-        self.command(Command::SoftReset, Some(SOFT_RESET_TIME_MS))
+    pub fn reset(&self, i2c: &mut I2C) -> Result<(), Error<E>> {
+        self.command(i2c,Command::SoftReset, Some(SOFT_RESET_TIME_MS))
     }
 
     /// Read the status register.
-    pub fn status(&mut self) -> Result<Status, Error<E>> {
-        self.command(Command::Status, None)?;
+    pub fn status(&self, i2c: &mut I2C) -> Result<Status, Error<E>> {
+        self.command(i2c,Command::Status, None)?;
         let mut buf = [0; 3];
-        self.i2c
+        i2c
             .read(self.address as u8, &mut buf)
             .map_err(Error::I2c)?;
 
@@ -73,8 +72,8 @@ where
     }
 
     /// Clear the status register.
-    pub fn clear_status<D: DelayMs<u8>>(&mut self) -> Result<(), Error<E>> {
-        self.command(Command::ClearStatus, None)
+    pub fn clear_status<D: DelayMs<u8>>(&self, i2c: &mut I2C) -> Result<(), Error<E>> {
+        self.command(i2c, Command::ClearStatus, None)
     }
 }
 
